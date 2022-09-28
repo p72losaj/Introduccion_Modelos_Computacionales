@@ -23,7 +23,9 @@ using namespace util;
 // Constructor: Default values for all the parameters
 MultilayerPerceptron::MultilayerPerceptron()
 {
-
+	this->nOfLayers = 1;
+	this->eta = 0.1;
+	this->mu = 0.9;
 }
 
 // ------------------------------
@@ -31,6 +33,34 @@ MultilayerPerceptron::MultilayerPerceptron()
 // nl is the number of layers and npl is a vetor containing the number of neurons in every layer
 // Give values to Layer* layers
 int MultilayerPerceptron::initialize(int nl, int npl[]) {
+	this->nOfLayers = nl;
+	int nOfNeuronsPrev;
+
+	this->layers = new Layer[nl];
+	for(int i=0; i < this->nOfLayers; i++){
+		
+		this->layers[i].nOfNeurons = npl[i]; // Le damos el numero de neuronas
+		this->layers[i].neurons = new Neuron[npl[i]]; // Creamos el vector de neuronas
+		// Layer 0
+		if(i==0){
+			for(int j=0; j<layers[i].nOfNeurons; j++){
+				this->layers[i].neurons[i].w = NULL;
+				this->layers[i].neurons[i].deltaW = NULL;
+				this->layers[i].neurons[i].lastDeltaW = NULL;
+				this->layers[i].neurons[i].wCopy = NULL;
+				
+			}
+			nOfNeuronsPrev = layers[i-1].nOfNeurons;
+			continue;
+		}
+		// Layer 1-H
+		for(int j=0; j<layers[i].nOfNeurons; j++){
+			this->layers[i].neurons[j].w = new double[nOfNeuronsPrev+1];
+			this->layers[i].neurons[j].deltaW = new double[nOfNeuronsPrev+1];
+			this->layers[i].neurons[j].lastDeltaW = new double[nOfNeuronsPrev+1];
+			this->layers[i].neurons[j].wCopy = new double[nOfNeuronsPrev+1];
+		}
+	}
 	return 1;
 }
 
