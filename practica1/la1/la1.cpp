@@ -25,20 +25,47 @@ using namespace util;
 
 int main(int argc, char **argv) {
     // Process arguments of the command line
-    bool Tflag = 0, wflag = 0, pflag = 0;
-    char *Tvalue = NULL, *wvalue = NULL;
-    int c;
+    bool mflag = 0,tflag = 0, Tflag = 0, wflag = 0, pflag = 0, iflag = 0, lflag = 0, hflag = 0, eflag=0, sflag=0;
+    char *Tvalue = NULL, *wvalue = NULL, *tvalue = NULL;
+    int c, ivalue = 0, lvalue = 0, hvalue = 0, svalue = 0, mvalue = 0, evalue = 0;
 
     opterr = 0;
 
     // a: Option that requires an argument
     // a:: The argument required is optional
-    while ((c = getopt(argc, argv, "T:w:p")) != -1)
+    while ((c = getopt(argc, argv, "t:T:i:l:h:w:e:m:ps")) != -1)
     {
         // The parameters needed for using the optional prediction mode of Kaggle have been included.
         // You should add the rest of parameters needed for the lab assignment.
         switch(c){
-            case 'T':
+            case 's': // Indica que los datos (train and test) se normalizan
+                sflag = true;
+                break;
+            case 'm': // Valor del parametro mu
+                mflag = true;
+                mvalue = atoi(optarg); 
+                break;
+            case 'e': // Valor del parametro eta
+                eflag = true;
+                evalue = atoi(optarg);
+                break;
+            case 'h': // Numero de neuronas de cada capa oculta
+                hflag = true;
+                hvalue = atoi(optarg);
+                break;
+            case 'l': // Numero de capas ocultas del modelo de red neuronal
+                lflag = true;
+                lvalue = atoi(optarg);
+                break;
+            case 'i': // Numero de iteraciones del bucle externo
+                iflag = true;
+                ivalue = atoi(optarg);
+                break;
+            case 't': // Nombre del fichero con los datos de entrenamiento.
+                tflag = true;
+                tvalue = optarg;
+                break;
+            case 'T': // Nombre del fichero con los datos de test.
                 Tflag = true;
                 Tvalue = optarg;
                 break;
@@ -64,6 +91,11 @@ int main(int argc, char **argv) {
         }
     }
 
+    if (!tflag){
+        fprintf (stderr, "The option -t is required.\n");
+        return EXIT_FAILURE;
+    }
+
     if (!pflag) {
         //////////////////////////////////
         // TRAINING AND EVALUATION MODE //
@@ -72,17 +104,63 @@ int main(int argc, char **argv) {
         // Multilayer perceptron object
     	MultilayerPerceptron mlp;
 
+        // No se especifica i -> Numero de iteraciones es 1000
+
+        if(!iflag){
+            ivalue = 1000;
+        }
+
+        // No especifica T -> Se usan los datos de entrenamiento
+
+        if(!Tflag){
+            Tvalue = tvalue;
+        }
+
+        // No se especifica l -> Utilizar 1 capa oculta
+
+        if(!lflag){
+            lvalue = 1;
+        }
+
+        // No se especifica h -> Utilizar 5 neuronas por capa oculta
+
+        if(!hflag){
+            hvalue = 5;
+        }
+
+        // No se especifica e -> Utilizar e=0.1
+
+        if(!eflag){
+            evalue = 0.1;
+        }
+
+        // No se especifica m -> Utilizar m=0.9
+
+        if(!mflag){
+            mvalue = 0.9;
+        }
+
         // Parameters of the mlp. For example, mlp.eta = value;
-    	int iterations = -1; // This should be corrected
+        mlp.eta = evalue;
+        mlp.mu = mvalue;
+    
+        
+    	int iterations = ivalue; // This should be corrected
 
         // Read training and test data: call to util::readData(...)
-    	Dataset * trainDataset = NULL; // This should be corrected
-    	Dataset * testDataset = NULL; // This should be corrected
+    	Dataset * trainDataset = util::readData(tvalue); // This should be corrected
+    	Dataset * testDataset = util::readData(Tvalue); // This should be corrected
 
         // Initialize topology vector
-    	int layers=-1; // This should be corrected
-    	int * topology=NULL; // This should be corrected
-
+    	int layers=lvalue; // This should be corrected
+    	int * topology=new int[lvalue+2]; // This should be corrected
+        topology[0] = trainDataset->nOfInputs; // Entrenamos la capa de entrada
+        // Entrenamos las neuronas de las capas ocultas de la primera topologia
+        for(int i=1; i<=layers; i++){
+            topology[i] = hvalue;
+        }
+        // Entrenamos la capa de salida
+        topology[layers+1] = trainDataset->nOfOutputs;
         // Initialize the network using the topology vector
         mlp.initialize(layers+2,topology);
 
@@ -99,7 +177,7 @@ int main(int argc, char **argv) {
             srand(seeds[i]);
             mlp.runOnlineBackPropagation(trainDataset,testDataset,iterations,&(trainErrors[i]),&(testErrors[i]));
             cout << "We end!! => Final test error: " << testErrors[i] << endl;
-
+            // Entrenamiento del error mediante back propagation
             // We save the weights every time we find a better model
             if(wflag && testErrors[i] <= bestTestError)
             {
@@ -114,6 +192,26 @@ int main(int argc, char **argv) {
         double averageTrainError = 0, stdTrainError = 0;
         
         // Obtain training and test averages and standard deviations
+
+        // Averrages
+
+        for(int i=0; i<5; i++){
+            averageTestError += testErrors[i];
+            averageTrainError += trainErrors[i];
+        }
+
+        averageTestError = averageTestError / 5;
+        averageTrainError = averageTrainError / 5;
+
+        // Standard deviations
+
+        for(int i=0; i<5; i++){
+            stdTestError += pow(testErrors[i] - averageTestError, 2);
+            stdTrainError += pow(trainErrors[i] - averageTrainError, 2);
+        }
+
+        stdTestError = sqrt(stdTestError / 5);
+        stdTrainError = sqrt(stdTrainError / 5);
 
         cout << "FINAL REPORT" << endl;
         cout << "************" << endl;
