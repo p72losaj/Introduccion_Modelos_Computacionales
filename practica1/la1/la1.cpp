@@ -64,10 +64,12 @@ int main(int argc, char **argv) {
             case 't': // Nombre del fichero con los datos de entrenamiento.
                 tflag = true;
                 tvalue = optarg;
+                cout << "Training file: " << tvalue << endl;
                 break;
             case 'T': // Nombre del fichero con los datos de test.
                 Tflag = true;
                 Tvalue = optarg;
+                cout << "Test file: " << Tvalue << endl;
                 break;
             case 'w':
                 wflag = true;
@@ -154,16 +156,15 @@ int main(int argc, char **argv) {
         // Initialize topology vector
     	int layers=lvalue; // This should be corrected
     	int * topology=new int[lvalue+2]; // This should be corrected
-        topology[0] = trainDataset->nOfInputs; // Entrenamos la capa de entrada
-        // Entrenamos las neuronas de las capas ocultas de la primera topologia
-        for(int i=1; i<=layers; i++){
-            topology[i] = hvalue;
-        }
-        // Entrenamos la capa de salida
+        // ¿Posible error?
+        topology[0] = trainDataset->nOfInputs;
         topology[layers+1] = trainDataset->nOfOutputs;
+        for(int i=1; i<=layers; i++){
+            topology[i] = hvalue; // This should be corrected
+        }
+
         // Initialize the network using the topology vector
         mlp.initialize(layers+2,topology);
-
 
         // Seed for random numbers
         int seeds[] = {1,2,3,4,5};
@@ -175,9 +176,9 @@ int main(int argc, char **argv) {
             cout << "SEED " << seeds[i] << endl;
             cout << "**********" << endl;
             srand(seeds[i]);
-            mlp.runOnlineBackPropagation(trainDataset,testDataset,iterations,&(trainErrors[i]),&(testErrors[i]));
+            mlp.runOnlineBackPropagation(trainDataset,testDataset,iterations,&(trainErrors[i]),&(testErrors[i])); // Da error
             cout << "We end!! => Final test error: " << testErrors[i] << endl;
-            // Entrenamiento del error mediante back propagation
+
             // We save the weights every time we find a better model
             if(wflag && testErrors[i] <= bestTestError)
             {
