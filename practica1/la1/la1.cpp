@@ -25,7 +25,7 @@ using namespace util;
 
 int main(int argc, char **argv) {
     // Process arguments of the command line
-    bool Tflag = 0, wflag = 0, pflag = 0;
+    bool Tflag = false, wflag = false, pflag = false;
     char *Tvalue = NULL, *wvalue = NULL;
     int c;
 
@@ -33,9 +33,10 @@ int main(int argc, char **argv) {
 
     // TODO: Opciones por implementar
 
-    bool tflag = 0, iflag=0,lflag=0,hflag=0,eflag=0,mflag=0,sflag=0;
+    bool tflag = false, iflag=false,lflag=false,hflag=false,eflag=false,mflag=false,sflag=false;
     char* tvalue=NULL;
-    int ivalue=0,lvalue=0,hvalue=0,evalue=0,mvalue=0;
+    int ivalue=0,lvalue=0,hvalue=0;
+    double evalue = 0.0, mvalue = 0.0;
     //////////////////////////////////////////
 
     // a: Option that requires an argument
@@ -68,12 +69,12 @@ int main(int argc, char **argv) {
             // TODO: Case 'e'
             case 'e':
             eflag = true;
-            evalue = atoi(optarg);
+            evalue = atof(optarg);
             break;
             // TODO: Case 'm'
             case 'm':
             mflag = true;
-            mvalue = atoi(optarg);
+            mvalue = atof(optarg);
             break;
             // TODO: Case 's'
             case 's':
@@ -130,7 +131,7 @@ int main(int argc, char **argv) {
         mlp.mu = mvalue;
         if(!iflag){
             ivalue = 1000;
-        }
+        } 
         int iterations = ivalue; // this should be correct
         // Read training and test data: call to util::readData(...)
         if(!Tflag){
