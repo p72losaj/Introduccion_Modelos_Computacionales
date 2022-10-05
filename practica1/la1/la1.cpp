@@ -146,10 +146,12 @@ int main(int argc, char **argv) {
             double * minTrain = util::minDatasetInputs(trainDataset); // minimo de cada columna de train
             double * maxTrain = util::maxDatasetInputs(trainDataset); // maximo de cada columna de train
             util::minMaxScalerDataSetInputs(trainDataset, -1.00, 1.00, minTrain, maxTrain); // normalizamos train
+            util::minMaxScalerDataSetInputs(testDataset, -1.00, 1.00, minTrain, maxTrain); // normalizamos train
             // Escalar test calculando minimo y maximo
-            double minTest = util::minDatasetOutputs(testDataset); // minimo de cada columna de test
-            double maxTest = util::maxDatasetOutputs(testDataset); // maximo de cada columna de test
-            util::minMaxScalerDataSetOutputs(testDataset, -1.00, 1.00, minTest, maxTest); // normalizamos test
+            double minTest = util::minDatasetOutputs(trainDataset); // minimo de cada columna de test
+            double maxTest = util::maxDatasetOutputs(trainDataset); // maximo de cada columna de test
+            util::minMaxScalerDataSetOutputs(trainDataset, 0.00, 1.00, minTest, maxTest); // normalizamos test
+            util::minMaxScalerDataSetOutputs(testDataset, 0.00, 1.00, minTest, maxTest); // normalizamos test
 
         }
 
@@ -212,10 +214,9 @@ int main(int argc, char **argv) {
             stdTestError += pow(testErrors[i] - averageTestError, 2);
             stdTrainError += pow(trainErrors[i] - averageTrainError, 2);
         }
-
         stdTestError = sqrt(stdTestError/5);
         stdTrainError = sqrt(stdTrainError/5);
-        
+
 
         cout << "FINAL REPORT" << endl;
         cout << "************" << endl;
