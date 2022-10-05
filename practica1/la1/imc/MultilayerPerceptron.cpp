@@ -79,6 +79,7 @@ void MultilayerPerceptron::freeMemory() {
 			delete[] this->layers[i].neurons[j].wCopy; // Free memory for the copy of the input weights
 		}
 		delete[] this->layers[i].neurons; // Delete the neuron vector
+
 	}
 	delete[] this->layers; // Delete the layer vector
 	
@@ -137,7 +138,7 @@ void MultilayerPerceptron::restoreWeights() {
 	for (int i = 1; i < this->nOfLayers; i++) {
 		for (int j = 0; j < this->layers[i].nOfNeurons; j++) {
 			for (int k = 0; k < this->layers[i-1].nOfNeurons + 1; k++) {
-				this->layers[i].neurons[j].wCopy[k] = this->layers[i].neurons[j].w[k];
+				this->layers[i].neurons[j].w[k] = this->layers[i].neurons[j].wCopy[k];
 			}
 		}
 	}
