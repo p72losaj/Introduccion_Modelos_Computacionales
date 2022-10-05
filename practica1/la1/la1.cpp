@@ -196,8 +196,8 @@ int main(int argc, char **argv) {
 
         cout << "WE HAVE FINISHED WITH ALL THE SEEDS" << endl;
 
-        double averageTestError = 0, stdTestError = 0;
-        double averageTrainError = 0, stdTrainError = 0;
+        double averageTestError = 0.0, stdTestError = 0.0;
+        double averageTrainError = 0.0, stdTrainError = 0.0;
         
         // Obtain training and test averages and standard deviations
 
@@ -207,6 +207,15 @@ int main(int argc, char **argv) {
         }
         averageTestError /= 5;
         averageTrainError /= 5;
+
+        for(int i=0; i<5; i++){
+            stdTestError += pow(testErrors[i] - averageTestError, 2);
+            stdTrainError += pow(trainErrors[i] - averageTrainError, 2);
+        }
+
+        stdTestError = sqrt(stdTestError/5);
+        stdTrainError = sqrt(stdTrainError/5);
+        
 
         cout << "FINAL REPORT" << endl;
         cout << "************" << endl;
