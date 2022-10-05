@@ -140,6 +140,19 @@ int main(int argc, char **argv) {
         Dataset * trainDataset = util::readData(tvalue);
         Dataset * testDataset = util::readData(Tvalue);
 
+        // Normalizamos los datos de entrenamiento
+        if(sflag == true){
+            // Escalar entrenamiento calculando minimo y maximo
+            double * minTrain = util::minDatasetInputs(trainDataset); // minimo de cada columna de train
+            double * maxTrain = util::maxDatasetInputs(trainDataset); // maximo de cada columna de train
+            util::minMaxScalerDataSetInputs(trainDataset, -1.00, 1.00, minTrain, maxTrain); // normalizamos train
+            // Escalar test calculando minimo y maximo
+            double minTest = util::minDatasetOutputs(testDataset); // minimo de cada columna de test
+            double maxTest = util::maxDatasetOutputs(testDataset); // maximo de cada columna de test
+            util::minMaxScalerDataSetOutputs(testDataset, -1.00, 1.00, minTest, maxTest); // normalizamos test
+
+        }
+
         // Initialize topology vector
         if(!lflag){
             lvalue = 1;

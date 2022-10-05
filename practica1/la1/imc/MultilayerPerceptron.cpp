@@ -50,9 +50,9 @@ int MultilayerPerceptron::initialize(int nl, int npl[]) {
 				this->layers[i].neurons[j].wCopy = new double[npl[i]]; // Copy of the input weights
 			}
 			else {
-				this->layers[i].neurons[j].w = new double[npl[i - 1]]; // Input weight vector (w_{ji}^h)
-				this->layers[i].neurons[j].deltaW = new double[npl[i - 1]]; // Change to be applied to every weight (\Delta_{ji}^h (t))
-				this->layers[i].neurons[j].wCopy = new double[npl[i - 1]]; // Copy of the input weights
+				this->layers[i].neurons[j].w = new double[npl[i - 1] + 1]; // Input weight vector (w_{ji}^h)
+				this->layers[i].neurons[j].deltaW = new double[npl[i - 1] + 1]; // Change to be applied to every weight (\Delta_{ji}^h (t))
+				this->layers[i].neurons[j].wCopy = new double[npl[i - 1] + 1]; // Copy of the input weights
 			}
 		}
 	}
@@ -72,6 +72,12 @@ MultilayerPerceptron::~MultilayerPerceptron() {
 void MultilayerPerceptron::freeMemory() {
 	// TODO: Free memory for the data structures
 	for(int i=0; i<this->nOfLayers;i++){ // For every layer
+		// Free memory for the neurons
+		for(int j=0; j<this->layers[i].nOfNeurons; j++){ // For every neuron
+			delete[] this->layers[i].neurons[j].w; // Free memory for the input weights
+			delete[] this->layers[i].neurons[j].deltaW; // Free memory for the change to be applied to every weight
+			delete[] this->layers[i].neurons[j].wCopy; // Free memory for the copy of the input weights
+		}
 		delete[] this->layers[i].neurons; // Delete the neuron vector
 	}
 	delete[] this->layers; // Delete the layer vector
@@ -257,8 +263,6 @@ void MultilayerPerceptron::performEpochOnline(double* input, double* target) {
 	this->backpropagateError(target);
 	this->accumulateChange();
 	this->weightAdjustment();
-
-
 }
 
 // ------------------------------
@@ -331,6 +335,7 @@ void MultilayerPerceptron::runOnlineBackPropagation(Dataset * trainDataset, Data
 	double minTrainError = 0;
 	int iterWithoutImproving;
 	double testError = 0;
+
 
 	// Learning
 	do {
