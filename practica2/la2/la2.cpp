@@ -32,7 +32,7 @@ int main(int argc, char **argv) {
 
     // TODO: Opciones por implementar
 
-    bool tflag = false, iflag=false,lflag=false,hflag=false,eflag=false,mflag=false,sflag=false;
+    bool tflag = false, iflag=false,lflag=false,hflag=false,eflag=false,mflag=false,nflag=false;
     char* tvalue=NULL;
     int ivalue=0,lvalue=0,hvalue=0;
     double evalue = 0.0, mvalue = 0.0;
@@ -78,8 +78,8 @@ int main(int argc, char **argv) {
             mvalue = atof(optarg);
             break;
             // TODO: Case 's'
-            case 's':
-            sflag = true;
+            case 'n':
+            nflag = true;
             break;
             case 'T':
                 Tflag = true;
@@ -144,7 +144,7 @@ int main(int argc, char **argv) {
     	Dataset * testDataset = util::readData(Tvalue); // This should be corrected
 
         // Normalizamos los datos de entrenamiento
-        if(sflag == true){
+        if(nflag == true){
             // Escalar entrenamiento calculando minimo y maximo
             double * minTrain = util::minDatasetInputs(trainDataset); // minimo de cada columna de train
             double * maxTrain = util::maxDatasetInputs(trainDataset); // maximo de cada columna de train
