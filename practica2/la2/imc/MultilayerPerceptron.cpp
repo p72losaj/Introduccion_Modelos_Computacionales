@@ -140,24 +140,15 @@ void MultilayerPerceptron::restoreWeights() {
 
 // ------------------------------
 // Calculate and propagate the outputs of the neurons, from the first layer until the last one -->-->
-void MultilayerPerceptron::forwardPropagate() {
-	double net;
-	for(int i=1; i<this->nOfLayers; i++){ // For every layer
-		for(int j=0;j<this->layers[i].nOfNeurons; j++){ // For every neuron
-			net = 0.0; // Reset net
-			for(int k=1; k<this->layers[i-1].nOfNeurons + 1; k++){ // For every weight
-				net += this->layers[i].neurons[j].w[k] * this->layers[i-1].neurons[k-1].out; // Calculate the net
-			}
-			net += this->layers[i].neurons[j].w[0]; // Add the bias
-			this->layers[i].neurons[j].out = 1.0 / (1 + exp(-net)); // Calculate the output
-		}
-	}
+void MultilayerPerceptron::forwardPropagate() { // Nuevo de la practica -> Funcion softmax()
+	
 }
 
 // ------------------------------
 // Obtain the output error (MSE) of the out vector of the output layer wrt a target vector and return it
 // errorFunction=1 => Cross Entropy // errorFunction=0 => MSE
-double MultilayerPerceptron::obtainError(double* target, int errorFunction) {
+double MultilayerPerceptron::obtainError(double* target, int errorFunction) { // Nuevo de la practica -> Incorporar funcion de error L (entropia cruzada)
+// Nueva expresion de δ^h_j
 	
 }
 
@@ -165,8 +156,7 @@ double MultilayerPerceptron::obtainError(double* target, int errorFunction) {
 // ------------------------------
 // Backpropagate the output error wrt a vector passed as an argument, from the last layer to the first one <--<--
 // errorFunction=1 => Cross Entropy // errorFunction=0 => MSE
-void MultilayerPerceptron::backpropagateError(double* target, int errorFunction) {
-}
+void MultilayerPerceptron::backpropagateError(double* target, int errorFunction) { // Nuevo de la practica -> Nueva expresion de δ^h_j )
 
 // ------------------------------
 // Accumulate the changes produced by one pattern and save them in deltaW
