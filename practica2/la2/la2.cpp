@@ -30,6 +30,13 @@ int main(int argc, char **argv) {
     char *Tvalue = NULL, *wvalue = NULL;
     int c;
 
+    // TODO: Opciones por implementar
+
+    bool tflag = false, iflag=false,lflag=false,hflag=false,eflag=false,mflag=false,sflag=false;
+    char* tvalue=NULL;
+    int ivalue=0,lvalue=0,hvalue=0;
+    double evalue = 0.0, mvalue = 0.0;
+
     opterr = 0;
 
     // a: Option that requires an argument
@@ -40,6 +47,40 @@ int main(int argc, char **argv) {
         // The parameters needed for using the optional prediction mode of Kaggle have been included.
         // You should add the rest of parameters needed for the lab assignment.
         switch(c){
+            // TODO: Case 't'
+            case 't':
+            tflag = true;
+            tvalue = optarg;
+            break;
+            // TODO: Case 'i'
+            case 'i':
+            iflag = true;
+            ivalue = atoi(optarg);
+            break;
+            // TODO: Case 'l'
+            case 'l':
+            lflag = true;
+            lvalue = atoi(optarg);
+            break;
+            // TODO: Case 'h'
+            case 'h':
+            hflag = true;
+            hvalue = atoi(optarg);
+            break;
+            // TODO: Case 'e'
+            case 'e':
+            eflag = true;
+            evalue = atof(optarg);
+            break;
+            // TODO: Case 'm'
+            case 'm':
+            mflag = true;
+            mvalue = atof(optarg);
+            break;
+            // TODO: Case 's'
+            case 's':
+            sflag = true;
+            break;
             case 'T':
                 Tflag = true;
                 Tvalue = optarg;
@@ -77,23 +118,58 @@ int main(int argc, char **argv) {
 
         // Parameters of the mlp. For example, mlp.eta = value
 
+        if(!eflag){
+            evalue = 0.7;
+        }
+        mlp.eta = evalue;
+        if(!mflag){
+            mvalue = 1;
+        }
+        mlp.mu = mvalue;
+        if(!iflag){
+            ivalue = 1000;
+        } 
+
     	// Type of error considered
     	int error=0; // This should be completed
 
     	// Maximum number of iterations
-    	int maxIter=500; // This should be completed
+    	int maxIter=ivalue; // This should be completed
 
         // Read training and test data: call to util::readData(...)
-    	Dataset * trainDataset = NULL; // This should be corrected
-    	Dataset * testDataset = NULL; // This should be corrected
+        if(!Tflag){
+            Tvalue = tvalue;
+        }
+    	Dataset * trainDataset = util::readData(tvalue); // This should be corrected
+    	Dataset * testDataset = util::readData(Tvalue); // This should be corrected
+
+        // Normalizamos los datos de entrenamiento
+        if(sflag == true){
+            // Escalar entrenamiento calculando minimo y maximo
+            double * minTrain = util::minDatasetInputs(trainDataset); // minimo de cada columna de train
+            double * maxTrain = util::maxDatasetInputs(trainDataset); // maximo de cada columna de train
+            util::minMaxScalerDataSetInputs(trainDataset, -1.00, 1.00, minTrain, maxTrain); // normalizamos train
+            util::minMaxScalerDataSetInputs(testDataset, -1.00, 1.00, minTrain, maxTrain); // normalizamos train
+
+        }
 
         // Initialize topology vector
-        //int *topology = new int[layers+2];
-        //topology[0] = trainDataset->nOfInputs;
-        //for(int i=1; i<(layers+2-1); i++)
-        //    topology[i] = neurons;
+        if(!lflag){
+            lvalue = 1;
+        }
+        int layers=lvalue;
+        int *topology = new int[layers+2];
+        if(!hflag){
+            hvalue = 5;
+        }
+        topology[0] = trainDataset->nOfInputs;
+        topology[layers+1] = trainDataset->nOfOutputs; // Entrenamos las neuronas de salida
+        // Entrenamos las neuronas de la capa oculta
+        for(int i=1; i<layers+1; i++){
+            topology[i] = hvalue;
+        }
         //topology[layers+2-1] = trainDataset->nOfOutputs;
-        //mlp.initialize(layers+2,topology);
+        mlp.initialize(layers+2,topology);
 
 		// Seed for random numbers
 		int seeds[] = {1,2,3,4,5};
@@ -124,7 +200,24 @@ int main(int argc, char **argv) {
 		double trainAverageCCR = 0, trainStdCCR = 0;
 		double testAverageCCR = 0, testStdCCR = 0;
 
-        // Obtain training and test averages and standard deviations
+        // Obtain training and test averages and standard deviations or error
+
+        for(int i=0; i<5; i++){
+            testAverageError += testErrors[i];
+            
+            trainAverageError += trainErrors[i];
+        }
+        testAverageError /= 5;
+        trainAverageError /= 5;
+
+        for(int i=0; i<5; i++){
+            testStdError += pow(testErrors[i] - testAverageError, 2);
+            trainStdError += pow(trainErrors[i] - trainAverageError, 2);
+        }
+        testStdError = sqrt(testStdError/5);
+        trainStdError = sqrt(trainStdError/5);
+
+        // Obtain training and test average and standard deviations of CCR
 
 		cout << "WE HAVE FINISHED WITH ALL THE SEEDS" << endl;
 
