@@ -48,11 +48,13 @@ int MultilayerPerceptron::initialize(int nl, int npl[]) {
 				this->layers[i].neurons[j].w = new double[npl[i]]; // Input weight vector (w_{ji}^h)
 				this->layers[i].neurons[j].deltaW = new double[npl[i]]; // Change to be applied to every weight (\Delta_{ji}^h (t)) 
 				this->layers[i].neurons[j].wCopy = new double[npl[i]]; // Copy of the input weights
+				this->layers[i].neurons[j].lastDeltaW = new double[npl[i]]; // Corregido en la practica2
 			}
 			else {
 				this->layers[i].neurons[j].w = new double[npl[i - 1] + 1]; // Input weight vector (w_{ji}^h)
 				this->layers[i].neurons[j].deltaW = new double[npl[i - 1] + 1]; // Change to be applied to every weight (\Delta_{ji}^h (t))
 				this->layers[i].neurons[j].wCopy = new double[npl[i - 1] + 1]; // Copy of the input weights
+				this->layers[i].neurons[j].lastDeltaW = new double[npl[i - 1] + 1]; // Corregido en la practica2
 			}
 		}
 	}
@@ -220,20 +222,18 @@ void MultilayerPerceptron::accumulateChange() {
 
 // ------------------------------
 // Update the network weights, from the first layer to the last one
-void MultilayerPerceptron::weightAdjustment() {
-	double newEta;
+void MultilayerPerceptron::weightAdjustment() { // Corregido en la practica2
 	for(int i=1; i<this->nOfLayers; i++){ // For every layer
-		for(int j=0; j<this->layers[i].nOfNeurons; j++){ // For every neuron
-			for(int k=1; k<this->layers[i-1].nOfNeurons +1; k++){ // For every weight
-				newEta = this->eta * this->layers[i].neurons[j].deltaW[k]; // Calculate the new eta
-				this->layers[i].neurons[j].w[k] -= newEta; // Update the weight
-				this->layers[i].neurons[j].deltaW[k] = 0.0; // Reset the deltaW
-			}
-			newEta = this->eta * this->layers[i].neurons[j].deltaW[0]; // Calculate the new eta
-			this->layers[i].neurons[j].w[0] -= newEta; // Update the weight
-			this->layers[i].neurons[j].deltaW[0] = 0.0; // Reset the deltaW
+			for(int j=1; j<this->layers[i].nOfNeurons; j++){ // For every neuron
+				for(int k=1; k<this->layers[i-1].nOfNeurons +1; k++){ // For every weight
+					this->layers[i].neurons[j].w[k] -= (this->eta*this->layers[i].neurons[j].deltaW[k])
+						- (this->mu * this->eta * this->layers[i].neurons[j].lastDeltaW[k]); // Update the weight) ;
+				}
+				// Actualizamos el sesgo
+				this->layers[i].neurons[j].w[0] -= (this->eta*this->layers[i].neurons[j].deltaW[0])
+					- (this->mu * this->eta * this->layers[i].neurons[j].lastDeltaW[0]);
+			}	
 		}
-	}
 
 }
 
