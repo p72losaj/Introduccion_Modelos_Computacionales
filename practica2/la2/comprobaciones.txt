@@ -1,0 +1,12 @@
+Base de datos nomist
+
+Funcion online -> Error demasiado alto ( no funciona o no se puede aplicar online a la Base
+de datos nomist)
+
+Base de datos XOR
+
+Resultados similares a los experimentos del profesor
+
+Base de datos ildp
+
+-> No calcula el error de entrenamiento

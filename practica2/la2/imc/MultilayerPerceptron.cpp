@@ -12,6 +12,7 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <algorithm> // Para calcular la distancia euclidea
 #include <cstdlib>  // To establish the seed srand() and generate pseudorandom numbers rand()
 #include <limits>
 #include <math.h>
@@ -146,21 +147,34 @@ void MultilayerPerceptron::restoreWeights() { // Anadido en practica1
 // ------------------------------
 // Calculate and propagate the outputs of the neurons, from the first layer until the last one -->-->
 void MultilayerPerceptron::forwardPropagate() { 
-	double net = 0.0;
-	// Error MSE -> Practica1
+	double net;
+	double sumNet = 0.0;
 
-	for(int i=1; i<this->nOfLayers; i++){ // For every layer
-		for(int j=0;j<this->layers[i].nOfNeurons; j++){ // For every neuron
-			net = 0.0; // Reset net
-			for(int k=1; k<this->layers[i-1].nOfNeurons + 1; k++){ // For every weight
-				net += this->layers[i].neurons[j].w[k] * this->layers[i-1].neurons[k-1].out; // Calculate the net
+	for(int i=1; i<this->nOfLayers; i++){
+		sumNet = 0.0;
+		for(int j=0; j<this->layers[i].nOfNeurons; j++){
+			net = 0.0;
+			for(int k=1; k<this->layers[i-1].nOfNeurons +1; k++){
+				net += this->layers[i].neurons[j].w[k] * this->layers[i-1].neurons[k-1].out;
 			}
-			net += this->layers[i].neurons[j].w[0]; // Add the bias
-			this->layers[i].neurons[j].out = 1.0 / (1 + exp(-net)); // Calculate the output
+
+			net += this->layers[i].neurons[j].w[0];
+
+			if((i == (this->nOfLayers - 1)) && (this->outputFunction == 1)){
+				this->layers[i].neurons[j].out = exp(net); // Softmax
+				sumNet += exp(net);
+			}
+			else{
+				this->layers[i].neurons[j].out = 1.0 / (1 + exp(-net));
+			}
+		}
+
+		if((i == (this->nOfLayers - 1)) && (this->outputFunction == 1)){
+			for(int j=0; j<this->layers[i].nOfNeurons; j++){
+				this->layers[i].neurons[j].out /= sumNet;
+			}
 		}
 	}
-
-	// Error Entropia cruzada
 	
 }
 
@@ -169,19 +183,24 @@ void MultilayerPerceptron::forwardPropagate() {
 // errorFunction=1 => Cross Entropy // errorFunction=0 => MSE
 double MultilayerPerceptron::obtainError(double* target, int errorFunction) { // Nuevo de la practica -> Incorporar funcion de error L (entropia cruzada)
 // Nueva expresion de δ^h_j
-	double mse = 0.0;
 	// Error MSE -> Practica1
+	
 	if(errorFunction == 0){
-		for(int i=0; i<this->layers[this->nOfLayers-1].nOfNeurons; i++){ // For every neuron
+		double mse = 0.0;
+		for(int i=0; i<this->layers[this->nOfLayers-1].nOfNeurons; i++){ 
 			mse += pow(target[i] - this->layers[this->nOfLayers - 1].neurons[i].out, 2); // Calculate the error
 		}
-		mse /= this->layers[this->nOfLayers - 1].nOfNeurons; // Calculate the mean
+
+		return mse /= (double) this->layers[this->nOfLayers - 1].nOfNeurons; // Calculate the mean
 	}
 	// Error Entropia cruzada
-	else{
-
+	double ce = 0.0;
+	for(int i=0; i<this->layers[this->nOfLayers-1].nOfNeurons; i++){ // For every neuron
+		ce += target[i] * log(this->layers[this->nOfLayers - 1].neurons[i].out); // Calculate the error
 	}
-	return mse;
+
+	return ce / (double) this->layers[this->nOfLayers - 1].nOfNeurons; // Calculate the mean
+	
 }
 
 
@@ -189,40 +208,67 @@ double MultilayerPerceptron::obtainError(double* target, int errorFunction) { //
 // Backpropagate the output error wrt a vector passed as an argument, from the last layer to the first one <--<--
 // errorFunction=1 => Cross Entropy // errorFunction=0 => MSE
 void MultilayerPerceptron::backpropagateError(double* target, int errorFunction) { // Nuevo de la practica -> Nueva expresion de δ^h_j )
-	// Error MSE -> Practica1
 	double out, aux;
-	if(errorFunction == 0){
-		for(int i=0; i<this->layers[this->nOfLayers-1].nOfNeurons; i++){ // For every neuron
-			out = this->layers[nOfLayers-1].neurons[i].out; // Get the output
-			this->layers[this->nOfLayers-1].neurons[i].delta = -(target[i]-out)*out*(1-out); // Calculate the delta
-		}
 
-		for(int i=this->nOfLayers-2; i>=1; i--){ // For every layer
-			for( int j=0; j<this->layers[i].nOfNeurons; j++){ // For every neuron
-				out = this->layers[i].neurons[j].out; // Get the output
-				aux = 0.0; // Reset aux
-				for(int k=0; k<this->layers[i+1].nOfNeurons; k++){ // For every neuron in the next layer
-					aux += this->layers[i+1].neurons[k].w[j+1] * this->layers[i+1].neurons[k].delta; // Calculate the aux
+	for(int i=0; i<this->layers[this->nOfLayers-1].nOfNeurons; i++){
+		out = this->layers[nOfLayers-1].neurons[i].out;
+		this->layers[this->nOfLayers-1].neurons[i].delta = 0.0;
+		//Softmax
+		if(this->outputFunction == 1){
+			int conditionSoftmax = 0;
+
+			for(int j=0; j<this->layers[this->nOfLayers-1].nOfNeurons; j++){
+				if(j == i){
+					conditionSoftmax = 1;
+				}
+				else{
+					conditionSoftmax = 0;
 				}
 
-				this->layers[i].neurons[j].delta = aux * out * (1 - out); // Calculate the delta
+				if(errorFunction == 0){					
+					this->layers[this->nOfLayers - 1].neurons[i].delta += -(target[j] - this->layers[this->nOfLayers-1].neurons[j].out) * out * (conditionSoftmax - this->layers[this->nOfLayers-1].neurons[j].out);
+				}
+				else{
+					this->layers[this->nOfLayers - 1].neurons[i].delta += -(target[j] / this->layers[this->nOfLayers-1].neurons[j].out) * out * (conditionSoftmax - this->layers[this->nOfLayers-1].neurons[j].out);
+				}
+			}
+		}
+		//Sigmoid
+		else{
+			if(errorFunction == 0){
+				this->layers[this->nOfLayers - 1].neurons[i].delta = -(target[i] - out) * out * (1 - out);
+			}
+			else{
+				this->layers[this->nOfLayers - 1].neurons[i].delta = -(target[i] / out) * out * (1 - out);
 			}
 		}
 	}
-	// Error Entropia cruzada
-	else{
 
+	for(int i=this->nOfLayers-2; i>=1; i--){ // For every layer
+		for( int j=0; j<this->layers[i].nOfNeurons; j++){ // For every neuron
+			out = this->layers[i].neurons[j].out; // Get the output
+			aux = 0.0; // Reset aux
+			for(int k=0; k<this->layers[i+1].nOfNeurons; k++){ // For every neuron in the next layer
+				aux += this->layers[i+1].neurons[k].w[j+1] * this->layers[i+1].neurons[k].delta; // Calculate the aux
+			}
+
+			this->layers[i].neurons[j].delta = aux * out * (1 - out); // Calculate the delta
+		}
 	}
 }
 // ------------------------------
 // Accumulate the changes produced by one pattern and save them in deltaW
 void MultilayerPerceptron::accumulateChange() { // anadido en practica1
-	for(int i=1; i<this->nOfLayers; i++){ // For every layer
-		for(int j=0; j<this->layers[i].nOfNeurons; j++){ // For every neuron
-			for(int k=1; k<this->layers[i-1].nOfNeurons +1; k++){ // For every weight
-				this->layers[i].neurons[j].deltaW[k] += this->layers[i].neurons[j].delta * this->layers[i-1].neurons[k-1].out; // Calculate the deltaw
+	for(int i=1; i<this->nOfLayers; i++){ // Para cada capa
+
+		for(int j=0; j<this->layers[i].nOfNeurons; j++){ // Para cada neurona de la capa i
+
+			for(int k=1; k<this->layers[i-1].nOfNeurons +1; k++){ // Para cada neurona de la capa i-1
+				// Acumular el cambio
+				this->layers[i].neurons[j].deltaW[k] += this->layers[i].neurons[j].delta * this->layers[i-1].neurons[k-1].out;
 			}
-			this->layers[i].neurons[j].deltaW[0] += this->layers[i].neurons[j].delta; //bias
+
+			this->layers[i].neurons[j].deltaW[0] += this->layers[i].neurons[j].delta; // Sesgo
 		}
 	}
 }
@@ -243,20 +289,21 @@ void MultilayerPerceptron::weightAdjustment() { // anadido en practica1
 			this->layers[i].neurons[j].deltaW[0] = 0.0; // Reset the deltaW
 		}
 	}
+	
 }
 
 // ------------------------------
 // Print the network, i.e. all the weight matrices
 void MultilayerPerceptron::printNetwork() { // anadido en practica1
 	for(int i=1; i<this->nOfLayers; i++){
-		cout << "Layer " << i << endl;
+		std::cout << "Layer " << i << std::endl;
 		for(int j=0; j<this->layers[i].nOfNeurons; j++){
 			for(int k=0; k<this->layers[i].nOfNeurons + 1; k++){
-				cout << this->layers[i].neurons[j].w[k] << " ";
+				std::cout << this->layers[i].neurons[j].w[k] << " ";
 			}
-			cout << endl;
+			std::cout << std::endl;
 		}
-		cout << endl;
+		std::cout << endl;
 	}
 }
 
@@ -267,17 +314,23 @@ void MultilayerPerceptron::printNetwork() { // anadido en practica1
 // If the algorithm is offline, the weightAdjustment must be performed in the "train" function
 // errorFunction=1 => Cross Entropy // errorFunction=0 => MSE
 void MultilayerPerceptron::performEpoch(double* input, double* target, int errorFunction) {
-	// Error MSE -> Practica1
-	if(errorFunction == 0){
-		this->feedInputs(input);
-		this->forwardPropagate();
-		this->backpropagateError(target,errorFunction);
-		this->accumulateChange();
-		this->weightAdjustment();
+	if(this->online == 1){
+		for(int i=1; i<this->nOfLayers; i++){
+			for(int j=0; j<this->layers[i].nOfNeurons; j++){
+				for(int k=0; k<this->layers[i-1].nOfNeurons + 1; k++){
+					this->layers[i].neurons[j].deltaW[k] = 0.0;
+				}
+			}
+		}
 	}
-	// Error Entropia cruzada
-	else{
 
+	this->feedInputs(input);
+	this->forwardPropagate();
+	this->backpropagateError(target, errorFunction);
+	this->accumulateChange();
+
+	if(this->online == 1){
+		this->weightAdjustment();
 	}
 }
 
@@ -285,23 +338,23 @@ void MultilayerPerceptron::performEpoch(double* input, double* target, int error
 // Train the network for a dataset (one iteration of the external loop)
 // errorFunction=1 => Cross Entropy // errorFunction=0 => MSE
 void MultilayerPerceptron::train(Dataset* trainDataset, int errorFunction) {
-	// Entrenamiento online -> Practica1
-	if(this->online == true){
-		for(int i=0; i<trainDataset->nOfPatterns; i++){
-			this->performEpoch(trainDataset->inputs[i], trainDataset->outputs[i], errorFunction);
-		}
-	}
-
-	// Modo offline
-	else{
-		for(int i=1; i<this->nOfLayers; i++){ // For every layer
-			for(int j=0; j<this->layers[i].nOfNeurons; j++){ // For every neuron
-				for(int k=1; k<this->layers[i-1].nOfNeurons +1; k++){ // For every weight
-					this->layers[i].neurons[j].deltaW[k] = 0.0; // Reset the deltaW
+	if(this->online == 0){
+		for(int i=1; i<this->nOfLayers; i++){
+			for(int j=0; j<this->layers[i].nOfNeurons; j++){
+				for(int k=0; k<this->layers[i-1].nOfNeurons + 1; k++){
+					this->layers[i].neurons[j].deltaW[k] = 0.0;
 				}
 			}
 		}
-		this->weightAdjustment(); // Ajustamos los pesos
+	}
+
+	for(int i=0; i<trainDataset->nOfPatterns; i++){
+		performEpoch(trainDataset->inputs[i], trainDataset->outputs[i],errorFunction);
+	}
+	
+
+	if(this->online == 0){
+		this->weightAdjustment();
 	}
 }
 
@@ -309,40 +362,44 @@ void MultilayerPerceptron::train(Dataset* trainDataset, int errorFunction) {
 // Test the network with a dataset and return the error
 // errorFunction=1 => Cross Entropy // errorFunction=0 => MSE
 double MultilayerPerceptron::test(Dataset* dataset, int errorFunction) {
-	double suma = 0.0;
-	double error;
+	double sum = 0.0;
+
 	for(int i=0; i<dataset->nOfPatterns; i++){
 		this->feedInputs(dataset->inputs[i]);
 		this->forwardPropagate();
-		suma = suma + this->obtainError(dataset->outputs[i], errorFunction);		
-	}
-	// Error MSE 
-	if(errorFunction == 0){
-		error = suma / dataset->nOfPatterns;
-	}
-	// Error Entropia cruzada
-	else{
 
+		sum += this->obtainError(dataset->outputs[i], errorFunction);
 	}
-	return error;
+
+	if(errorFunction == 0)
+		return sum / dataset->nOfPatterns; //MSE
+
+	return -1 * (sum / dataset->nOfPatterns); //Cross Entropy
 }
 
 
 // ------------------------------
 // Test the network with a dataset and return the CCR
 double MultilayerPerceptron::testClassification(Dataset* dataset) {
-	double ccr = 0.0;
-	int max;
+	int ccr = 0.0;
+	int expectedClass = 0, obtainedClass = 0;
+	double *outArray = new double[this->layers[this->nOfLayers - 1].nOfNeurons];
+
 	for(int i=0; i<dataset->nOfPatterns; i++){
 		this->feedInputs(dataset->inputs[i]);
 		this->forwardPropagate();
-		max = util::maxDatasetOutputs(dataset);
-		if(max == dataset->outputs[i][0]){
+		this->getOutputs(outArray);
+
+		expectedClass = std::distance(dataset->outputs[i], std::max_element(dataset->outputs[i], dataset->outputs[i] + dataset->nOfOutputs));
+		obtainedClass = std::distance(outArray, std::max_element(outArray, outArray + dataset->nOfOutputs));
+
+		if(expectedClass == obtainedClass){
 			ccr++;
 		}
+
 	}
-	ccr = ccr / dataset->nOfPatterns;
-	return ccr;
+
+	return ((double)ccr / dataset->nOfPatterns) * 100;
 }
 
 
