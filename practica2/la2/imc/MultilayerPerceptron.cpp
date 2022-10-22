@@ -56,11 +56,13 @@ int MultilayerPerceptron::initialize(int nl, int npl[]) {
 				this->layers[i].neurons[j].w = NULL;
 				this->layers[i].neurons[j].deltaW = NULL;
 				this->layers[i].neurons[j].wCopy = NULL;
+				this->layers[i].neurons[j].lastDeltaW = NULL;
 			}
 			else {
 				this->layers[i].neurons[j].w = new double[npl[i - 1] + 1]; // Input weight vector (w_{ji}^h)
 				this->layers[i].neurons[j].deltaW = new double[npl[i - 1] + 1]; // Change to be applied to every weight (\Delta_{ji}^h (t))
 				this->layers[i].neurons[j].wCopy = new double[npl[i - 1] + 1]; // Copy of the input weights
+				this->layers[i].neurons[j].lastDeltaW = new double[npl[i - 1] + 1]; 
 			}
 		}
 	}
@@ -276,19 +278,37 @@ void MultilayerPerceptron::accumulateChange() { // anadido en practica1
 // ------------------------------
 // Update the network weights, from the first layer to the last one
 void MultilayerPerceptron::weightAdjustment() { // anadido en practica1
-	double newEta;
-	for(int i=1; i<this->nOfLayers; i++){ // For every layer
-		for(int j=0; j<this->layers[i].nOfNeurons; j++){ // For every neuron
-			for(int k=1; k<this->layers[i-1].nOfNeurons +1; k++){ // For every weight
-				newEta = this->eta * this->layers[i].neurons[j].deltaW[k]; // Calculate the new eta
-				this->layers[i].neurons[j].w[k] -= newEta; // Update the weight
-				this->layers[i].neurons[j].deltaW[k] = 0.0; // Reset the deltaW
-			}
-			newEta = this->eta * this->layers[i].neurons[j].deltaW[0]; // Calculate the new eta
-			this->layers[i].neurons[j].w[0] -= newEta; // Update the weight
-			this->layers[i].neurons[j].deltaW[0] = 0.0; // Reset the deltaW
+	// modo online
+	if(this->online == true){
+		for(int i=1; i<this->nOfLayers; i++){ // For every layer
+			for(int j=1; j<this->layers[i].nOfNeurons; j++){ // For every neuron
+				for(int k=1; k<this->layers[i-1].nOfNeurons +1; k++){ // For every weight
+					this->layers[i].neurons[j].w[k] -= (this->eta*this->layers[i].neurons[j].deltaW[k])
+						- (this->mu * this->eta * this->layers[i].neurons[j].lastDeltaW[k]); // Update the weight) ;
+				}
+				// Actualizamos el sesgo
+				this->layers[i].neurons[j].w[0] -= (this->eta*this->layers[i].neurons[j].deltaW[0])
+					- (this->mu * this->eta * this->layers[i].neurons[j].lastDeltaW[0]);
+			}	
 		}
 	}
+
+	// Modo offline
+	else{
+		for(int h=1; h<this->nOfLayers; h++){
+			for(int j=1; j< this->layers[h].nOfNeurons; j++){
+				for(int i=1; i<this->layers[h-1].nOfNeurons; i++){
+					this->layers[h].neurons[j].w[i] -= (this->eta*this->layers[h].neurons[j].deltaW[i] / this->nOfTrainingPatterns)
+					- (this->mu * (this->eta * this->layers[h].neurons[j].lastDeltaW[i])/this->nOfTrainingPatterns);
+				}
+				// Sesgo
+				this->layers[h].neurons[j].w[0] -= (this->eta*this->layers[h].neurons[j].deltaW[0] / this->nOfTrainingPatterns)
+					- (this->mu * (this->eta * this->layers[h].neurons[j].lastDeltaW[0])/this->nOfTrainingPatterns);
+			}
+		}
+	}
+	
+	
 	
 }
 
