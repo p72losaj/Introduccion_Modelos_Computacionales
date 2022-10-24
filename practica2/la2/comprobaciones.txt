@@ -1,0 +1,28 @@
+Condiciones:
+
+1- Numero maximo de iteraciones del bucle externo (XOR): 1000
+2- Numero maximo de iteraciones del bucle externo (ildp): 500
+3- Base de datos XOR: Mismo fichero de entrenamiento y de test
+4- Base de datos ildp no normalizada -> Emplear normalizacion
+5- Base de datos xor y noMNIST ya estan normalizadas
+6- Construir una tabla para cada base de datos -> Comparacion de medias y desviaciones
+tipicas:
+    a) Error de entrenamiento y de test -> MSR o Entropia cruzada
+    b) CCR de entrenamiento y de test
+
+7- Arquitectura de red:
+    a) Funcion de entropia cruzada, funcion de activacion softmax en la capa de salida
+        y algoritmo offline
+        *) Problema XOR -> Arquitectura que resulto mejor en la practica anterior
+            (XOR 2 capas ocultas, 100 neuronas por capa oculta, 1000 iteraciones)
+        *) Problemas ildp y noMNIST -> 8 arquitecturas ({1,2} capas ocultas
+            con {4,8,16,64} neuronas)
+    b) Decidida mejor arquitectura -> algoritmo offline:
+        *) Funcion de error MSE y funcion de activacion sigmoide en la capa de salida
+        *) Funcion de error MSE y funcion de activacion softmax en la capa de salida
+        *) Funcion de error entropia cruzada y funcion de activacion softmax en la capa 
+            de salida
+        *) Error al combinar entropia cruzada y activacion sigmoide -> Explicar porque
+            lleva a malos resultados.
+
+    c) Elegida mejor combinacion anterior -> Comparar modo online con el modo offline
