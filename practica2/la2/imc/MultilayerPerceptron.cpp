@@ -404,14 +404,27 @@ double MultilayerPerceptron::testClassification(Dataset* dataset) {
 	int ccr = 0.0;
 	int expectedClass = 0, obtainedClass = 0;
 	double *outArray = new double[this->layers[this->nOfLayers - 1].nOfNeurons];
+	double maximo = 0.0, maximo2 = 0.0;
 
 	for(int i=0; i<dataset->nOfPatterns; i++){
 		this->feedInputs(dataset->inputs[i]);
 		this->forwardPropagate();
 		this->getOutputs(outArray);
 
-		expectedClass = std::distance(dataset->outputs[i], std::max_element(dataset->outputs[i], dataset->outputs[i] + dataset->nOfOutputs));
-		obtainedClass = std::distance(outArray, std::max_element(outArray, outArray + dataset->nOfOutputs));
+		maximo = outArray[0];
+		maximo2 = dataset->outputs[i][0];
+		for(int j=1; j<dataset->nOfOutputs; j++){
+			// Maximo de la clase obtenida
+			if(maximo < outArray[j]){
+				maximo = outArray[j];
+				obtainedClass = j;
+			}
+			// maximo de la clase esperada
+			if(maximo2 < dataset->outputs[i][j]){
+				maximo2 = dataset->outputs[i][j];
+				expectedClass = j;
+			}
+		}
 
 		if(expectedClass == obtainedClass){
 			ccr++;
