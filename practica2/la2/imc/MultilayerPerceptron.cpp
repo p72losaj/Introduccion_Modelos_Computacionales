@@ -22,6 +22,13 @@ using namespace imc;
 using namespace std;
 using namespace util;
 
+// Variable global de la semilla
+int seed = 0;
+
+// Matriz de confusion
+int** confusionMatrix;
+
+
 // ------------------------------
 // Constructor: Default values for all the parameters
 MultilayerPerceptron::MultilayerPerceptron()
@@ -50,9 +57,6 @@ int MultilayerPerceptron::initialize(int nl, int npl[]) {
 	for (int i = 0; i < nl; i++) {
 		for (int j = 0; j < npl[i]; j++) {
 			if (i == 0) {
-				// this->layers[i].neurons[j].w = new double[npl[i]]; // Input weight vector (w_{ji}^h)
-				// this->layers[i].neurons[j].deltaW = new double[npl[i]]; // Change to be applied to every weight (\Delta_{ji}^h (t)) 
-				// this->layers[i].neurons[j].wCopy = new double[npl[i]]; // Copy of the input weights
 				this->layers[i].neurons[j].w = NULL;
 				this->layers[i].neurons[j].deltaW = NULL;
 				this->layers[i].neurons[j].wCopy = NULL;
@@ -66,6 +70,7 @@ int MultilayerPerceptron::initialize(int nl, int npl[]) {
 			}
 		}
 	}
+	
 	return 1;
 }
 
@@ -170,9 +175,10 @@ void MultilayerPerceptron::forwardPropagate() {
 				this->layers[i].neurons[j].out = 1.0 / (1 + exp(-net));
 			}
 		}
-
+		
 		if((i == (this->nOfLayers - 1)) && (this->outputFunction == 1)){
 			for(int j=0; j<this->layers[i].nOfNeurons; j++){
+				// Softmax normalization (only for the output layer) 
 				this->layers[i].neurons[j].out /= sumNet;
 			}
 		}
@@ -405,6 +411,7 @@ double MultilayerPerceptron::testClassification(Dataset* dataset) {
 	int expectedClass = 0, obtainedClass = 0;
 	double *outArray = new double[this->layers[this->nOfLayers - 1].nOfNeurons];
 	double maximo = 0.0, maximo2 = 0.0;
+	
 
 	for(int i=0; i<dataset->nOfPatterns; i++){
 		this->feedInputs(dataset->inputs[i]);
@@ -430,9 +437,19 @@ double MultilayerPerceptron::testClassification(Dataset* dataset) {
 			ccr++;
 		}
 
+		// Matriz de confusion
+		if(confusionMatrix != NULL){
+			confusionMatrix[expectedClass][obtainedClass]++;
+		}
+
+
 	}
 
+	delete[] outArray;
+
 	return ((double)ccr / dataset->nOfPatterns) * 100;
+
+	
 }
 
 
@@ -481,14 +498,32 @@ void MultilayerPerceptron::runBackPropagation(Dataset * trainDataset, Dataset * 
 	double minTrainError = 0;
 	int iterWithoutImproving = 0;
 	nOfTrainingPatterns = trainDataset->nOfPatterns;
-
+	double trainCCR = 0.0;
+	double testCCR = 0.0;
+	// Reservamos memoria de la matriz de confusion
+	confusionMatrix = new int*[5];
+	for(int i=0; i<trainDataset->nOfOutputs; i++){
+		confusionMatrix[i] = new int[trainDataset->nOfOutputs];
+	}
+	// Fichero por semilla
+	string nameProblem;
+	std::ostringstream aux;
+	aux << "seed_" << seed << ".txt";
+	nameProblem = aux.str();
+	seed++;
+	// Fichero de la semilla
+	ofstream fichero(nameProblem);
+	// Cabecera del fichero
+	fichero << "Epoch\tTrainError\tTrainCCR\tTestCCR" << endl;
 
 	// Learning
 	do {
 
 		train(trainDataset,errorFunction);
-
 		double trainError = test(trainDataset,errorFunction);
+		trainCCR = testClassification(trainDataset);
+		testCCR = testClassification(testDataset);
+
 		if(countTrain==0 || trainError < minTrainError){
 			minTrainError = trainError;
 			copyWeights();
@@ -506,8 +541,8 @@ void MultilayerPerceptron::runBackPropagation(Dataset * trainDataset, Dataset * 
 		}
 
 		countTrain++;
-
-		cout << "Iteration " << countTrain << "\t Training error: " << trainError << endl;
+		std::cout << "Iteration " << countTrain << " Training error: " << trainError  << endl;
+		fichero << countTrain << " " << trainError << " " << trainCCR << " " << testCCR << endl;
 
 	} while ( countTrain<maxiter );
 
@@ -534,10 +569,25 @@ void MultilayerPerceptron::runBackPropagation(Dataset * trainDataset, Dataset * 
 
 	}
 
-	*errorTest=test(testDataset,errorFunction);;
+	*errorTest=test(testDataset,errorFunction);
 	*errorTrain=minTrainError;
 	*ccrTest = testClassification(testDataset);
 	*ccrTrain = testClassification(trainDataset);
+
+	// Guardamos en el fichero la matriz de confusion
+	fichero << endl << "Confusion Matrix[ExpectedClass][ObtainedClass]" << endl;
+	for(int i=0; i<trainDataset->nOfOutputs; i++){
+		for(int j=0; j<trainDataset->nOfOutputs; j++){
+			fichero << confusionMatrix[i][j] << "\t";
+		}
+		fichero << endl;
+	}
+	
+	
+	delete confusionMatrix;
+	
+	// Cerramos el fichero de texto
+	fichero.close();
 
 }
 

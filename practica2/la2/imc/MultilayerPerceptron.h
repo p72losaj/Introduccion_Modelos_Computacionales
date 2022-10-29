@@ -102,8 +102,9 @@ public:
 	// errorFunction=1 => Cross Entropy // errorFunction=0 => MSE
 	double test(Dataset* dataset, int errorFunction);
 	
-	// Test the network with a dataset and return the CCR
+	// Test the network with a dataset and return the CCR -> Modificacion para calcular la matriz de confusion
 	double testClassification(Dataset* dataset);
+	
 
 	// Optional Kaggle: Obtain the predicted outputs for a dataset
 	void predict(Dataset* testDataset);

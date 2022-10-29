@@ -1,7 +1,7 @@
 Condiciones:
 
-1- Numero maximo de iteraciones del bucle externo (XOR): 1000
-2- Numero maximo de iteraciones del bucle externo (ildp): 500
+1- Numero maximo de iteraciones del bucle externo (XOR,ildp): 1000
+2- Numero maximo de iteraciones del bucle externo (noMNIST): 500
 3- Base de datos XOR: Mismo fichero de entrenamiento y de test
 4- Base de datos ildp no normalizada -> Emplear normalizacion
 5- Base de datos xor y noMNIST ya estan normalizadas
@@ -20,8 +20,7 @@ tipicas:
     b) Decidida mejor arquitectura -> algoritmo offline:
         *) Funcion de error MSE y funcion de activacion sigmoide en la capa de salida
         *) Funcion de error MSE y funcion de activacion softmax en la capa de salida
-        *) Funcion de error entropia cruzada y funcion de activacion softmax en la capa 
-            de salida
+        *) Funcion de error entropia cruzada y funcion de activacion softmax en la capa de salida.
         *) Error al combinar entropia cruzada y activacion sigmoide -> Explicar porque
             lleva a malos resultados.
 
