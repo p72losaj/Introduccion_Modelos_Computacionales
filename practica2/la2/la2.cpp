@@ -16,6 +16,7 @@
 #include <string.h>
 #include <math.h>
 #include <float.h>
+#include <fstream>
 
 #include "imc/MultilayerPerceptron.h"
 #include "imc/util.h"
@@ -190,18 +191,23 @@ int main(int argc, char **argv) {
         
         mlp.initialize(layers+2,topology);
 
+        int x=0; // Indica la semilla con el mejor CCR
+        double bestccr = 0.0; // Mejor ccr
+
 		// Seed for random numbers
 		int seeds[] = {1,2,3,4,5};
 		double *trainErrors = new double[5];
 		double *testErrors = new double[5];
 		double *trainCCRs = new double[5];
 		double *testCCRs = new double[5];
-		double bestTestError = DBL_MAX;
+		double bestTestError = DBL_MAX;        
+
 		for(int i=0; i<5; i++){
 			cout << "**********" << endl;
 			cout << "SEED " << seeds[i] << endl;
 			cout << "**********" << endl;
 			srand(seeds[i]);
+
 			mlp.runBackPropagation(trainDataset,testDataset,maxIter,&(trainErrors[i]),&(testErrors[i]),&(trainCCRs[i]),&(testCCRs[i]),error);
 			cout << "We end!! => Final test CCR: " << testCCRs[i] << endl;
 
@@ -212,6 +218,16 @@ int main(int argc, char **argv) {
 				bestTestError = testErrors[i];
 			}
 		}
+
+        bestccr = testCCRs[0];
+        x=0;
+
+        for(int i=1; i<5; i++){
+            if(testCCRs[i] > bestccr){
+                bestccr = testCCRs[i];
+                x = i;
+            }
+        }
 
 
 		double trainAverageError = 0, trainStdError = 0;
@@ -260,6 +276,8 @@ int main(int argc, char **argv) {
 	    cout << "Test error (Mean +- SD): " << testAverageError << " +- " << testStdError << endl;
 	    cout << "Train CCR (Mean +- SD): " << trainAverageCCR << " +- " << trainStdCCR << endl;
 	    cout << "Test CCR (Mean +- SD): " << testAverageCCR << " +- " << testStdCCR << endl;
+
+        cout << "Semilla con mejor ccr: " << x << endl;
 		return EXIT_SUCCESS;
     } else {
 
