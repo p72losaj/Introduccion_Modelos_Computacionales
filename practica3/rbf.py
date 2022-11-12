@@ -11,6 +11,18 @@ IMC: lab assignment 3
 # TODO Include all neccesary imports
 import pickle
 import os
+import click 
+import numpy as np
+import pandas as pd
+
+from sklearn.metrics import mean_squared_error
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.model_selection import train_test_split
+from sklearn.cluster import KMeans # Biblioteca k-medias
+from sklearn.linear_model import LogisticRegression # Biblioteca Regresion Logistica
+from scipy.spatial.distance import pdist
+from scipy.spatial.distance import squareform
+from sklearn.metrics import confusion_matrix # Biblioteca matriz de confusion
 
 @click.command()
 @click.option('--train_file', '-t', default=None, required=False,
@@ -18,10 +30,52 @@ import os
 
 # TODO Include the rest of parameters...
 
+# Argumento -T, nombre del fichero de test. Por defecto, utilizar los datos 
+# de entrenamiento
+
+@click.option('--test_file', '-T', default=None, required=False, show_default=True,
+    help=u'Name of the file with test data.')    
+
+# Argumento -c, indica si el problema es de clasificacion.
+# tipo booleano. Por defecto, problema de regresion
+
+@click.option('--classification', '-c', default=False, required=False, show_default=True,
+    is_flag=True, help=u'Indicates if the problem is classification o regresion.')
+
+# Argumento -r, Razon en tanto por uno de neuronas RBF respecto al total de patrones.
+# Por defecto, 0.1 capa oculta
+
+@click.option('--ratio_rbf', '-r', default=0.1, required=False, show_default=True,
+    help=u'Ratio of RBF neurons with respect to the total number of patterns.')
+
+# Argumento -l, boolenao que indica si el tipo de regularizacion. Por defecto, L1
+
+@click.option('--l2', '-l', default=False, required=False, show_default=True,
+    is_flag=True, help=u'Indicates if the regularization is L2 or L1.')
+
+# Argumento -e, valor de eta. Por defecto, 0.01
+
+@click.option('--eta', '-e', default=0.01, required=False, show_default=True,
+    help=u'Value of eta.')
+
+# Argumento -f, activa el cálculo de métricas de rendimiento por grupos.
+# Asume que el grupo esta almacenado como ultima variable de las variables de entrada
+# Por defecto, esta desactivado
+
+@click.option('--fairness', '-f', default=False, required=False, show_default=True,
+    is_flag=True, help=u'Indicates if the performance metrics by groups are calculated.')
+
+# Argumento -o, numero de columnas de salida del conjunto de datos y siempre al final.
+# Por defecto, 1
+
+@click.option('--outputs', '-o', default=1, required=False, show_default=True,
+    help=u'Number of output columns of the dataset and always at the end.')
+
 @click.option('--pred', '-p', is_flag=True, default=False, show_default=True,
               help=u'Use the prediction mode.') # KAGGLE
 @click.option('--model', '-m', default="", show_default=False,
               help=u'Directory name to save the models (or name of the file to load the model, if the prediction mode is active).') # KAGGLE
+
 def train_rbf_total(train_file, test_file, classification, ratio_rbf, l2, eta, fairness, outputs, model, pred):
     """ 5 executions of RBFNN training
     
@@ -30,15 +84,19 @@ def train_rbf_total(train_file, test_file, classification, ratio_rbf, l2, eta, f
     """
 
     if not pred:    
-
+        # Fichero de entrenamiento
         if train_file is None:
             print("You have not specified the training file (-t)")
             return
+        # Fichero de test
+        if test_file is None:
+            test_file = train_file
+            return
 
-        train_mses = np.empty(5)
-        train_ccrs = np.empty(5)
-        test_mses = np.empty(5)
-        test_ccrs = np.empty(5)
+        train_mses = np.empty(5) # MSE de entrenamiento
+        train_ccrs = np.empty(5) # CCR de entrenamiento
+        test_mses = np.empty(5)  # MSE de test
+        test_ccrs = np.empty(5) # CCR de test
         
         if fairness:
             train_fn0 = np.empty(5)
@@ -159,6 +217,8 @@ def train_rbf(train_file, test_file, classification, ratio_rbf, l2, eta, fairnes
                                                                         outputs)
 
     #TODO: Obtain num_rbf from ratio_rbf
+    # Numero RBF = ratio_rbf * total patrones
+    num_rbf = int(ratio_rbf * len(train_inputs)) 
     print("Number of RBFs used: %d" %(num_rbf))
     # 1. Init centroids + 2. clustering 
     kmeans, distances, centers = clustering(classification, train_inputs, 
@@ -180,6 +240,9 @@ def train_rbf(train_file, test_file, classification, ratio_rbf, l2, eta, fairnes
     TODO: Obtain the distances from the centroids to the test patterns
           and obtain the R matrix for the test set
     """
+    test_distances = kmeans.transform(test_inputs) # Distancias de los patrones de test a los centroides
+    test_r_matrix = calculate_r_matrix(test_distances, radii) # R matrix de los patrones de test
+
     if not classification:
         train_predictions = np.dot(r_matrix, coefficients)
         test_predictions = np.dot(test_r_matrix, coefficients)
@@ -227,6 +290,7 @@ def train_rbf(train_file, test_file, classification, ratio_rbf, l2, eta, fairnes
         if fairness:
             # TODO Group label (we assume it is in the last column of input data): 
             # 1 women / 0 men
+            group_label = test_inputs[:,-1]
 
             # train_results and test results are expected to be a MetricFrame
             return train_results, test_results
@@ -257,12 +321,31 @@ def train_rbf(train_file, test_file, classification, ratio_rbf, l2, eta, fairnes
         TODO: Obtain the predictions for training and test and calculate
               the MSE
         """
+        train_predictions = np.matmul(r_matrix, coefficients) # Predicciones de los patrones de entrenamiento
+        test_predictions = np.matmul(test_r_matrix, coefficients) # Predicciones de los patrones de test
+        #print(np.array_str(test_predictions, suppress_small=True))
+        train_mse = mean_squared_error(train_predictions, train_outputs) # MSE de los patrones de entrenamiento
+        test_mse = mean_squared_error(test_predictions, test_outputs) # MSE de los patrones de test
+        train_ccr = 0 # CCR de los patrones de entrenamiento
+        test_ccr = 0 # CCR de los patrones de test
+
     else:
         """
         TODO: Obtain the predictions for training and test and calculate
               the CCR. Obtain also the MSE, but comparing the obtained
               probabilities and the target probabilities
         """
+        log_b = OneHotEncoder() # Codificador de etiquetas de clase
+        train_b_outputs = log_b.fit_transform(train_outputs).toarray() # Codificación de las etiquetas de clase de entrenamiento
+        test_b_outputs = log_b.fit_transform(test_outputs).toarray() # Codificación de las etiquetas de clase de test
+        train_ccr = logreg.score(r_matrix, train_outputs) * 100 # CCR de los patrones de entrenamiento
+        test_ccr = logreg.score(test_r_matrix, test_outputs) * 100 # CCR de los patrones de test
+        train_mse = mean_squared_error(train_b_outputs, logreg.predict_proba(r_matrix)) # MSE de los patrones de entrenamiento
+        test_mse = mean_squared_error(test_b_outputs, logreg.predict_proba(test_r_matrix)) # MSE de los patrones de test
+        predict = logreg.predict(test_r_matrix) # Predicciones de los patrones de test
+        cm = confusion_matrix(test_outputs, predict) # Matriz de confusión
+        print('Matriz de confusion')
+        print(cm)
 
     return train_mse, test_mse, train_ccr, test_ccr
 
@@ -294,7 +377,17 @@ def read_data(train_file, test_file, outputs):
     """
 
     #TODO: Complete the code of the function
-    return train_results, test_results 
+    df_train = pd.read_csv(train_file, header=None) # Lectura del fichero de entrenamiento
+    df_test = pd.read_csv(test_file, header=None) # Lectura del fichero de test
+    train = df_train.to_numpy().astype(np.float) # Conversión a matriz de numpy del fichero de entrenamiento a float
+    test = df_test.to_numpy().astype(np.float) # Conversión a matriz de numpy del fichero de test a float
+    train_inputs = train[:, 0:-outputs] # Matriz de patrones de entrenamiento
+    train_outputs = train[:, train_inputs.shape[1]:] # Matriz de salidas de entrenamiento
+    test_inputs = test[:, 0:-outputs] # Matriz de patrones de test
+    test_outputs = test[:, test_inputs.shape[1]:] # Matriz de salidas de test
+
+    return train_inputs, train_outputs, test_inputs, test_outputs
+    # return train_results, test_results 
 
 def init_centroids_classification(train_inputs, train_outputs, num_rbf):
     """ Initialize the centroids for the case of classification
@@ -316,6 +409,7 @@ def init_centroids_classification(train_inputs, train_outputs, num_rbf):
     """
     
     #TODO: Complete the code of the function
+    centroids, x_test, y_train, y_test = train_test_split(train_inputs, train_outputs, train_size=num_rbf, stratify=train_outputs) # Selección de los centroides
     return centroids
 
 def clustering(classification, train_inputs, train_outputs, num_rbf):
@@ -347,6 +441,15 @@ def clustering(classification, train_inputs, train_outputs, num_rbf):
     """
 
     #TODO: Complete the code of the function
+    if classification == True:
+        centroids = init_centroids_classification(train_inputs, train_outputs, num_rbf)
+        kmeans = KMeans(n_clusters=num_rbf, init=centroids, n_init=1, max_iter=500) # Clustering
+    else:
+        kmeans = KMeans(n_clusters=num_rbf, init='random', n_init=1, max_iter=500) # Clustering
+
+    kmeans.fit(train_inputs) # Ajuste del clustering
+    distances = kmeans.transform(train_inputs) # Distancias de los patrones a los centroides
+    centers = kmeans.cluster_centers_ # Centroides
     return kmeans, distances, centers
 
 def calculate_radii(centers, num_rbf):
@@ -368,6 +471,12 @@ def calculate_radii(centers, num_rbf):
     """
 
     #TODO: Complete the code of the function
+    dist = squareform(pdist(centers)) # Distancias entre los centroides
+    radii = np.array([], dtype=np.float64) # Array de radios de los RBFs
+
+    for i in range(0,num_rbf):
+        media = sum(dist[i])/(2*(num_rbf-1)) # Media de las distancias de cada centroide a los demás
+        radii = np.append(radii, media) # Añadir el radio al array de radios
     return radii
 
 def calculate_r_matrix(distances, radii):
@@ -391,6 +500,14 @@ def calculate_r_matrix(distances, radii):
     """
 
     #TODO: Complete the code of the function
+    r_matrix = np.power(distances,2) # Elevar al cuadrado las distancias de los patrones a los centroides
+    
+    for i in range(r_matrix.shape[1]): # Dividir entre el cuadrado del radio de cada RBF
+        r_matrix[:,i] = np.divide(r_matrix[:,i], np.power(radii[i],2))
+    
+    r_matrix = np.exp(-r_matrix) # Aplicar la función exponencial
+    ones = np.ones((r_matrix.shape[0],1)) # Array de unos para la columna de bias
+    r_matrix = np.hstack((r_matrix, ones)) # Añadir la columna de unos a la matriz R
     return r_matrix
 
 def invert_matrix_regression(r_matrix, train_outputs):
@@ -415,6 +532,8 @@ def invert_matrix_regression(r_matrix, train_outputs):
     """
 
     #TODO: Complete the code of the function
+    pseudo_inverse = np.linalg.pinv(r_matrix) # Pseudoinversa de la matriz R
+    coefficients = np.matmul(pseudo_inverse, train_outputs) # Multiplicar la pseudoinversa por las salidas
     return coefficients
 
 def logreg_classification(matriz_r, train_outputs, l2, eta):
@@ -442,6 +561,12 @@ def logreg_classification(matriz_r, train_outputs, l2, eta):
     """
 
     #TODO: Complete the code of the function
+    if l2 == True: # Si se quiere usar L2
+        logreg = LogisticRegression(C=(1/eta), solver='liblinear') # Crear el objeto de regresión logística con L2 y el valor de eta dado por parámetro 
+    else: # Si se quiere usar L1
+        logreg = LogisticRegression(penalty='l1', C=(1/eta), solver='liblinear') # Crear el objeto de regresión logística con L1 y el valor de eta dado por parámetro
+    logreg.fit(matriz_r, train_outputs.ravel()) # Ajustar el modelo de regresión logística con la matriz R y las salidas del dataset de entrenamiento 
+
     return logreg
 
 
