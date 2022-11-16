@@ -283,8 +283,11 @@ def invert_matrix_regression(r_matrix, train_outputs):
     """
 
     #TODO: Complete the code of the function
-    pseudo_inverse = np.linalg.pinv(r_matrix) # Pseudoinversa de la matriz R
-    coefficients = np.matmul(pseudo_inverse, train_outputs) # Multiplicar la pseudoinversa por las salidas
+    matriz_t = np.transpose(r_matrix)
+    matriz_inversed = np.linalg.inv(np.matmul(matriz_t, r_matrix))
+    pseudo_inverse = np.matmul(matriz_inversed, matriz_t)
+    # Coeficientes
+    coefficients = np.matmul(pseudo_inverse, train_outputs)
     return coefficients
 
 

@@ -114,7 +114,7 @@ def train_rbf_total(train_file, test_file, classification, ratio_rbf, l2, eta, f
                 train_rbf(train_file, test_file, classification, ratio_rbf, l2, eta, fairness, outputs, \
                              model and "{}/{}.pickle".format(model, s) or "")
 
-            train_mses[s-1] = train_results["ccr"]
+            train_mses[s-1] = train_results["mse"]
             test_mses[s-1] = test_results["mse"] 
             train_ccrs[s-1] = train_results["ccr"]
             test_ccrs[s-1] = test_results["ccr"]
@@ -290,9 +290,9 @@ def train_rbf(train_file, test_file, classification, ratio_rbf, l2, eta, fairnes
         if fairness:
             # TODO Group label (we assume it is in the last column of input data): 
             # 1 women / 0 men
-            group_label = test_inputs[:,-1]
 
             # train_results and test results are expected to be a MetricFrame
+            
             return train_results, test_results
 
     # # # # KAGGLE # # # #
@@ -347,7 +347,8 @@ def train_rbf(train_file, test_file, classification, ratio_rbf, l2, eta, fairnes
         print('Matriz de confusion')
         print(cm)
 
-    return train_mse, test_mse, train_ccr, test_ccr
+    #return train_mse, test_mse, train_ccr, test_ccr
+    return train_results, test_results
 
 def read_data(train_file, test_file, outputs):
     """ Read the input data
@@ -379,8 +380,8 @@ def read_data(train_file, test_file, outputs):
     #TODO: Complete the code of the function
     df_train = pd.read_csv(train_file, header=None) # Lectura del fichero de entrenamiento
     df_test = pd.read_csv(test_file, header=None) # Lectura del fichero de test
-    train = df_train.to_numpy().astype(np.float) # Conversión a matriz de numpy del fichero de entrenamiento a float
-    test = df_test.to_numpy().astype(np.float) # Conversión a matriz de numpy del fichero de test a float
+    train = df_train.to_numpy().astype(np.float64) # Conversión a matriz de numpy del fichero de entrenamiento a float
+    test = df_test.to_numpy().astype(np.float64) # Conversión a matriz de numpy del fichero de test a float
     train_inputs = train[:, 0:-outputs] # Matriz de patrones de entrenamiento
     train_outputs = train[:, train_inputs.shape[1]:] # Matriz de salidas de entrenamiento
     test_inputs = test[:, 0:-outputs] # Matriz de patrones de test
@@ -532,8 +533,14 @@ def invert_matrix_regression(r_matrix, train_outputs):
     """
 
     #TODO: Complete the code of the function
-    pseudo_inverse = np.linalg.pinv(r_matrix) # Pseudoinversa de la matriz R
-    coefficients = np.matmul(pseudo_inverse, train_outputs) # Multiplicar la pseudoinversa por las salidas
+
+    # pseudo_inverse = np.linalg.pinv(r_matrix) # Pseudoinversa de la matriz R
+    # pseudo_inverse = (r_matriz^T * r_matriz)^-1 * r_matriz^T
+    matriz_t = np.transpose(r_matrix)
+    matriz_inversed = np.linalg.inv(np.matmul(matriz_t, r_matrix))
+    pseudo_inverse = np.matmul(matriz_inversed, matriz_t)
+    # Coeficientes
+    coefficients = np.matmul(pseudo_inverse, train_outputs)
     return coefficients
 
 def logreg_classification(matriz_r, train_outputs, l2, eta):
@@ -610,4 +617,6 @@ def predict(test_file, model_file):
     return test_predictions
     
 if __name__ == "__main__":
+
     train_rbf_total()
+    
