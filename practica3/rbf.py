@@ -14,7 +14,10 @@ import os
 import click 
 import numpy as np
 import pandas as pd
-
+# MetricFrame
+from fairlearn.metrics import MetricFrame
+from fairlearn.metrics import false_negative_rate
+from fairlearn.metrics import false_positive_rate
 from sklearn.metrics import mean_squared_error
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.model_selection import train_test_split
@@ -23,6 +26,7 @@ from sklearn.linear_model import LogisticRegression # Biblioteca Regresion Logis
 from scipy.spatial.distance import pdist
 from scipy.spatial.distance import squareform
 from sklearn.metrics import confusion_matrix # Biblioteca matriz de confusion
+
 
 @click.command()
 @click.option('--train_file', '-t', default=None, required=False,
@@ -289,10 +293,31 @@ def train_rbf(train_file, test_file, classification, ratio_rbf, l2, eta, fairnes
         # Fairness evaluation
         if fairness:
             # TODO Group label (we assume it is in the last column of input data): 
+            train_gender_bin = np.floor(train_inputs[:,-1])
+            test_gender_bin = np.floor(test_inputs[:,-1])
             # 1 women / 0 men
-
+            train_gender_bin[train_gender_bin == -1] = 0
+            test_gender_bin[test_gender_bin == -1] = 0
             # train_results and test results are expected to be a MetricFrame
-            
+            metrics = {
+                'false negative rate': false_negative_rate,
+                'false positive rate': false_positive_rate,
+            }
+            train_fm = MetricFrame(
+                metrics=metrics,
+                y_true=train_outputs,
+                y_pred=train_predictions,
+                sensitive_features=train_gender_bin
+            )
+            train_results['fairnes_metrics'] = train_fm
+
+            test_fm = MetricFrame(
+                metrics=metrics,
+                y_true=test_outputs,
+                y_pred=test_predictions,
+                sensitive_features=test_gender_bin
+            )
+            test_results['fairnes_metrics'] = test_fm
             return train_results, test_results
 
     # # # # KAGGLE # # # #
