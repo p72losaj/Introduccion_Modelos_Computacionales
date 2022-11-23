@@ -437,11 +437,8 @@ double MultilayerPerceptron::testClassification(Dataset* dataset) {
 			ccr++;
 		}
 
-		// Matriz de confusion
-		if(confusionMatrix != NULL){
-			confusionMatrix[expectedClass][obtainedClass]++;
-		}
-
+		// Matriz de confusion 
+		confusionMatrix[expectedClass][obtainedClass]++;
 
 	}
 
