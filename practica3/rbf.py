@@ -214,13 +214,14 @@ def train_rbf(train_file, test_file, classification, ratio_rbf, l2, eta, fairnes
                                                                         outputs)
 
     #TODO: Obtain num_rbf from ratio_rbf
-    num_rbf = int(ratio_rbf * len(train_inputs)) 
+    num_rbf = int(ratio_rbf * len(train_inputs))
     ###########################################
     print("Number of RBFs used: %d" %(num_rbf))
     # 1. Init centroids + 2. clustering 
     kmeans, distances, centers = clustering(classification, train_inputs, train_outputs, num_rbf)
     
     # 3. Adjust radii
+    
     radii = calculate_radii(centers, num_rbf)
     
     # 4. R matrix 
@@ -556,7 +557,7 @@ def invert_matrix_regression(r_matrix, train_outputs):
     matriz_inversed = np.linalg.inv(np.matmul(matriz_t, r_matrix))
     pseudo_inverse = np.matmul(matriz_inversed, matriz_t)
     coefficients = np.matmul(pseudo_inverse, train_outputs)
-    print("Coeficientes: ", coefficients)
+    
     ########################################################
     return coefficients
 
@@ -592,7 +593,16 @@ def logreg_classification(matriz_r, train_outputs, l2, eta):
         
     logreg.fit(matriz_r, train_outputs.ravel()) # Ajustar el modelo de regresión logística con la matriz R y las salidas del dataset de entrenamiento 
     coeficientes = logreg.coef_ # Obtener los coeficientes del modelo
-    print("Coeficientes: ", coeficientes)
+    sumaCoeficientes = 0
+    # Recorremos los coeficientes para calcular la suma de los valores absolutos
+    for i in range(coeficientes.shape[0]):
+        for j in range(coeficientes.shape[1]):
+            absoluto = abs(coeficientes[i,j])
+            # Si el valor absoluto de un coeficiente es menor que 0.00001, se considera
+            # que es nulo y se suma
+            if absoluto < 0.00001:
+                sumaCoeficientes += 1
+    print("Número de coeficientes nulos: ", sumaCoeficientes)
     
     #############################################################3
     return logreg
