@@ -141,6 +141,26 @@ def train_rbf_total(train_file, test_file, classification, ratio_rbf, l2, eta, f
             print("Test FN0: %.2f%% +- %.2f%%" % (np.mean(test_fn0), np.std(test_fn0)))
             print("Test FN1: %.2f%% +- %.2f%%" % (np.mean(test_fn1), np.std(test_fn1)))
             
+        
+        # No clasificacion -> Datos de la semilla con mejor MSE en test
+        if not classification:
+            best_seed = np.argmin(test_mses) + 1
+            print("Best seed: %d" % best_seed)
+            print("Best MSE train: %f" % train_mses[best_seed-1])
+            print("Best MSE test: %f" % test_mses[best_seed-1])
+
+        # Clasificacion -> Datos de la semilla con mejor CCR en test
+        else:
+            best_seed = np.argmax(test_ccrs) + 1
+            print("Best seed: %d" % best_seed)
+            print("Best CCR train: %.2f%%" % train_ccrs[best_seed-1])
+            print("Best CCR test: %.2f%%" % test_ccrs[best_seed-1])
+            if fairness:
+                print("Best FN0 train: %.2f%%" % train_fn0[best_seed-1])
+                print("Best FN1 train: %.2f%%" % train_fn1[best_seed-1])
+                print("Best FN0 test: %.2f%%" % test_fn0[best_seed-1])
+                print("Best FN1 test: %.2f%%" % test_fn1[best_seed-1])
+
     else:
         # KAGGLE
         if model is None:
@@ -332,7 +352,7 @@ def train_rbf(train_file, test_file, classification, ratio_rbf, l2, eta, fairnes
             #################################################
 
             # train_results and test results are expected to be a MetricFrame
-            return train_results, test_results
+            
 
     # # # # KAGGLE # # # #
     if model_file != "":
@@ -460,9 +480,11 @@ def clustering(classification, train_inputs, train_outputs, num_rbf):
     #TODO: Complete the code of the function
     if classification == True:
         centroids = init_centroids_classification(train_inputs, train_outputs, num_rbf)
-        kmeans = KMeans(n_clusters=num_rbf, init=centroids, n_init=1, max_iter=500) # Clustering
+        kmeans = KMeans(n_clusters=num_rbf, init=centroids, n_init=1, max_iter=500)
+        #kmeans = KMeans(n_clusters=num_rbf, init='k-means++', n_init=1, max_iter=500) 
     else:
-        kmeans = KMeans(n_clusters=num_rbf, init='random', n_init=1, max_iter=500) # Clustering
+        kmeans = KMeans(n_clusters=num_rbf, init='random', n_init=1, max_iter=500)
+        #kmeans = KMeans(n_clusters=num_rbf, init='k-means++', n_init=1, max_iter=500) 
 
     kmeans.fit(train_inputs) # Ajuste del clustering
     distances = kmeans.transform(train_inputs) # Distancias de los patrones a los centroides
