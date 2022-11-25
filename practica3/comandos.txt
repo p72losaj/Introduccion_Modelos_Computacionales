@@ -1,0 +1,99 @@
+# Base de datos seno
+
+# Mejor arquitectura seno
+
+python3 rbf.py -t datasetsLA3IMC/csv/train_sin.csv -T datasetsLA3IMC/csv/test_sin.csv -r 0.05 -e 0.00001
+#######################################################
+python3 rbf.py -t datasetsLA3IMC/csv/train_sin.csv -T datasetsLA3IMC/csv/test_sin.csv -r 0.15 -e 0.00001
+python3 rbf.py -t datasetsLA3IMC/csv/train_sin.csv -T datasetsLA3IMC/csv/test_sin.csv -r 0.25 -e 0.00001
+python3 rbf.py -t datasetsLA3IMC/csv/train_sin.csv -T datasetsLA3IMC/csv/test_sin.csv -r 0.5 -e 0.00001
+
+# Base de datos quake
+
+# Mejor arquitectura quake
+python3 rbf.py -t datasetsLA3IMC/csv/train_quake.csv -T datasetsLA3IMC/csv/test_quake.csv -e 0.00001 -r 0.05
+##############################################
+python rbf.py -t datasetsLA3IMC/csv/train_quake.csv -T datasetsLA3IMC/csv/test_quake.csv -e 0.00001 -r 0.15
+python rbf.py -t datasetsLA3IMC/csv/train_quake.csv -T datasetsLA3IMC/csv/test_quake.csv -e 0.00001 -r 0.25
+python rbf.py -t datasetsLA3IMC/csv/train_quake.csv -T datasetsLA3IMC/csv/test_quake.csv -e 0.00001 -r 0.5
+
+# Base de datos Parkinsons
+
+python3 rbf.py -t datasetsLA3IMC/csv/train_parkinsons.csv -T datasetsLA3IMC/csv/test_parkinsons.csv -e 0.00001 -r 0.05
+python3 rbf.py -t datasetsLA3IMC/csv/train_parkinsons.csv -T datasetsLA3IMC/csv/test_parkinsons.csv -e 0.00001 -r 0.15
+python3 rbf.py -t datasetsLA3IMC/csv/train_parkinsons.csv -T datasetsLA3IMC/csv/test_parkinsons.csv -e 0.00001 -r 0.25
+
+# Mejor arquitectura Parkinsons
+python3 rbf.py -t datasetsLA3IMC/csv/train_parkinsons.csv -T datasetsLA3IMC/csv/test_parkinsons.csv -e 0.00001 -r 0.5
+###############################
+# Base de datos ildp
+
+python3 rbf.py -t datasetsLA3IMC/csv/train_ildp.csv -T datasetsLA3IMC/csv/test_ildp.csv -e 0.00001 -c -r 0.05
+python3 rbf.py -t datasetsLA3IMC/csv/train_ildp.csv -T datasetsLA3IMC/csv/test_ildp.csv -e 0.00001 -c -r 0.15
+python3 rbf.py -t datasetsLA3IMC/csv/train_ildp.csv -T datasetsLA3IMC/csv/test_ildp.csv -e 0.00001 -c -r 0.25
+python3 rbf.py -t datasetsLA3IMC/csv/train_ildp.csv -T datasetsLA3IMC/csv/test_ildp.csv -e 0.00001 -c -r 0.5
+
+# Pruebas ildp cambiando eta
+
+python3 rbf.py -t datasetsLA3IMC/csv/train_ildp.csv -T datasetsLA3IMC/csv/test_ildp.csv -c -r 0.5 -e 1 >> datos.txt
+python3 rbf.py -t datasetsLA3IMC/csv/train_ildp.csv -T datasetsLA3IMC/csv/test_ildp.csv -c -r 0.5 -e 1 -l >> datos.txt
+python3 rbf.py -t datasetsLA3IMC/csv/train_ildp.csv -T datasetsLA3IMC/csv/test_ildp.csv -c -r 0.5 -e 0.1 >> datos.txt
+python3 rbf.py -t datasetsLA3IMC/csv/train_ildp.csv -T datasetsLA3IMC/csv/test_ildp.csv -c -r 0.5 -e 0.1 -l >> datos.txt
+python3 rbf.py -t datasetsLA3IMC/csv/train_ildp.csv -T datasetsLA3IMC/csv/test_ildp.csv -c -r 0.5 -e 0.01 >> datos.txt
+python3 rbf.py -t datasetsLA3IMC/csv/train_ildp.csv -T datasetsLA3IMC/csv/test_ildp.csv -c -r 0.5 -e 0.01 -l >> datos.txt
+python3 rbf.py -t datasetsLA3IMC/csv/train_ildp.csv -T datasetsLA3IMC/csv/test_ildp.csv -c -r 0.5 -e 0.001 >> datos.txt
+python3 rbf.py -t datasetsLA3IMC/csv/train_ildp.csv -T datasetsLA3IMC/csv/test_ildp.csv -c -r 0.5 -e 0.001 -l >> datos.txt
+python3 rbf.py -t datasetsLA3IMC/csv/train_ildp.csv -T datasetsLA3IMC/csv/test_ildp.csv -c -r 0.5 -e 0.0001 >> datos.txt
+python3 rbf.py -t datasetsLA3IMC/csv/train_ildp.csv -T datasetsLA3IMC/csv/test_ildp.csv -c -r 0.5 -e 0.0001 -l >> datos.txt
+python3 rbf.py -t datasetsLA3IMC/csv/train_ildp.csv -T datasetsLA3IMC/csv/test_ildp.csv -c -r 0.5 -e 0.00001 >> datos.txt
+python3 rbf.py -t datasetsLA3IMC/csv/train_ildp.csv -T datasetsLA3IMC/csv/test_ildp.csv -c -r 0.5 -e 0.00001 -l >> datos.txt
+python3 rbf.py -t datasetsLA3IMC/csv/train_ildp.csv -T datasetsLA3IMC/csv/test_ildp.csv -c -r 0.5 -e 0.000001  >> datos.txt
+
+## Mejor arquitectura ildp
+python3 rbf.py -t datasetsLA3IMC/csv/train_ildp.csv -T datasetsLA3IMC/csv/test_ildp.csv -c -r 0.5 -e 0.000001 -l  >> datos.txt
+#################################
+
+python3 rbf.py -t datasetsLA3IMC/csv/train_ildp.csv -T datasetsLA3IMC/csv/test_ildp.csv -c -r 0.5 -e 0.0000001 >> datos.txt
+python3 rbf.py -t datasetsLA3IMC/csv/train_ildp.csv -T datasetsLA3IMC/csv/test_ildp.csv -c -r 0.5 -e 0.0000001 -l >> datos.txt
+python3 rbf.py -t datasetsLA3IMC/csv/train_ildp.csv -T datasetsLA3IMC/csv/test_ildp.csv -c -r 0.5 -e 0.00000001 >> datos.txt
+python3 rbf.py -t datasetsLA3IMC/csv/train_ildp.csv -T datasetsLA3IMC/csv/test_ildp.csv -c -r 0.5 -e 0.00000001 -l >> datos.txt
+python3 rbf.py -t datasetsLA3IMC/csv/train_ildp.csv -T datasetsLA3IMC/csv/test_ildp.csv -c -r 0.5 -e 0.000000001 >> datos.txt
+python3 rbf.py -t datasetsLA3IMC/csv/train_ildp.csv -T datasetsLA3IMC/csv/test_ildp.csv -c -r 0.5 -e 0.000000001 -l >> datos.txt
+python3 rbf.py -t datasetsLA3IMC/csv/train_ildp.csv -T datasetsLA3IMC/csv/test_ildp.csv -c -r 0.5 -e 0.0000000001 >> datos.txt
+python3 rbf.py -t datasetsLA3IMC/csv/train_ildp.csv -T datasetsLA3IMC/csv/test_ildp.csv -c -r 0.5 -e 0.0000000001 -l >> datos.txt
+ 
+
+# Base de datos nomnist
+
+python3 rbf.py -t datasetsLA3IMC/csv/train_nomnist.csv -T datasetsLA3IMC/csv/test_nomnist.csv -e 0.00001 -c -r 0.05
+python3 rbf.py -t datasetsLA3IMC/csv/train_nomnist.csv -T datasetsLA3IMC/csv/test_nomnist.csv -e 0.00001 -c -r 0.15
+python3 rbf.py -t datasetsLA3IMC/csv/train_nomnist.csv -T datasetsLA3IMC/csv/test_nomnist.csv -e 0.00001 -c -r 0.25
+python3 rbf.py -t datasetsLA3IMC/csv/train_nomnist.csv -T datasetsLA3IMC/csv/test_nomnist.csv -e 0.00001 -c -r 0.5
+
+# Pruebas nomnist cambiando el valor de eta
+
+python3 rbf.py -t datasetsLA3IMC/csv/train_nomnist.csv -T datasetsLA3IMC/csv/test_nomnist.csv -c -r 0.5 -e 1 >> datos.txt
+python3 rbf.py -t datasetsLA3IMC/csv/train_nomnist.csv -T datasetsLA3IMC/csv/test_nomnist.csv -c -r 0.5 -e 1 -l >> datos.txt
+python3 rbf.py -t datasetsLA3IMC/csv/train_nomnist.csv -T datasetsLA3IMC/csv/test_nomnist.csv -c -r 0.5 -e 0.1 >> datos.txt
+python3 rbf.py -t datasetsLA3IMC/csv/train_nomnist.csv -T datasetsLA3IMC/csv/test_nomnist.csv -c -r 0.5 -e 0.1 -l >> datos.txt
+python3 rbf.py -t datasetsLA3IMC/csv/train_nomnist.csv -T datasetsLA3IMC/csv/test_nomnist.csv -c -r 0.5 -e 0.01 >> datos.txt
+python3 rbf.py -t datasetsLA3IMC/csv/train_nomnist.csv -T datasetsLA3IMC/csv/test_nomnist.csv -c -r 0.5 -e 0.01 -l >> datos.txt
+python3 rbf.py -t datasetsLA3IMC/csv/train_nomnist.csv -T datasetsLA3IMC/csv/test_nomnist.csv -c -r 0.5 -e 0.001 >> datos.txt
+python3 rbf.py -t datasetsLA3IMC/csv/train_nomnist.csv -T datasetsLA3IMC/csv/test_nomnist.csv -c -r 0.5 -e 0.001 -l >> datos.txt
+python3 rbf.py -t datasetsLA3IMC/csv/train_nomnist.csv -T datasetsLA3IMC/csv/test_nomnist.csv -c -r 0.5 -e 0.0001 >> datos.txt
+##########
+# Mejor arquitectura nomnist
+python3 rbf.py -t datasetsLA3IMC/csv/train_nomnist.csv -T datasetsLA3IMC/csv/test_nomnist.csv -c -r 0.5 -e 0.0001 -l >> datos.txt
+##########
+python3 rbf.py -t datasetsLA3IMC/csv/train_nomnist.csv -T datasetsLA3IMC/csv/test_nomnist.csv -c -r 0.5 -e 0.00001 >> datos.txt
+python3 rbf.py -t datasetsLA3IMC/csv/train_nomnist.csv -T datasetsLA3IMC/csv/test_nomnist.csv -c -r 0.5 -e 0.00001 -l >> datos.txt
+python3 rbf.py -t datasetsLA3IMC/csv/train_nomnist.csv -T datasetsLA3IMC/csv/test_nomnist.csv -c -r 0.5 -e 0.000001  >> datos.txt
+python3 rbf.py -t datasetsLA3IMC/csv/train_nomnist.csv -T datasetsLA3IMC/csv/test_nomnist.csv -c -r 0.5 -e 0.000001 -l  >> datos.txt
+python3 rbf.py -t datasetsLA3IMC/csv/train_nomnist.csv -T datasetsLA3IMC/csv/test_nomnist.csv -c -r 0.5 -e 0.0000001 >> datos.txt
+python3 rbf.py -t datasetsLA3IMC/csv/train_nomnist.csv -T datasetsLA3IMC/csv/test_nomnist.csv -c -r 0.5 -e 0.0000001 -l >> datos.txt
+python3 rbf.py -t datasetsLA3IMC/csv/train_nomnist.csv -T datasetsLA3IMC/csv/test_nomnist.csv -c -r 0.5 -e 0.00000001 >> datos.txt
+python3 rbf.py -t datasetsLA3IMC/csv/train_nomnist.csv -T datasetsLA3IMC/csv/test_nomnist.csv -c -r 0.5 -e 0.00000001 -l >> datos.txt
+python3 rbf.py -t datasetsLA3IMC/csv/train_nomnist.csv -T datasetsLA3IMC/csv/test_nomnist.csv -c -r 0.5 -e 0.000000001 >> datos.txt
+python3 rbf.py -t datasetsLA3IMC/csv/train_nomnist.csv -T datasetsLA3IMC/csv/test_nomnist.csv -c -r 0.5 -e 0.000000001 -l >> datos.txt
+python3 rbf.py -t datasetsLA3IMC/csv/train_nomnist.csv -T datasetsLA3IMC/csv/test_nomnist.csv -c -r 0.5 -e 0.0000000001 >> datos.txt
+python3 rbf.py -t datasetsLA3IMC/csv/train_nomnist.csv -T datasetsLA3IMC/csv/test_nomnist.csv -c -r 0.5 -e 0.0000000001 -l >> datos.txt
